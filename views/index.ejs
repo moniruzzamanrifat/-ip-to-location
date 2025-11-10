@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🌍 IP Information</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🌍 Your IP Information</h1>
+
+    <p><strong>Local IP (Device):</strong> <%= localIP %></p>
+    <p><strong>Public IP (Internet):</strong> <%= publicIP %></p>
+
+    <% if (data) { %>
+      <p><strong>Country:</strong> <%= data.country %></p>
+      <p><strong>Region:</strong> <%= data.region %></p>
+      <p><strong>City:</strong> <%= data.city %></p>
+      <p><strong>Coordinates:</strong> <%= data.latitude %>, <%= data.longitude %></p>
+
+      <% if (data.country) { %>
+        <img src="https://flagcdn.com/80x60/<%= data.country.toLowerCase() %>.png"
+             alt="Flag of <%= data.country %>"
+             class="flag" />
+      <% } %>
+    <% } else { %>
+      <p>No data found.</p>
+    <% } %>
+  </div>
+</body>
+</html>
