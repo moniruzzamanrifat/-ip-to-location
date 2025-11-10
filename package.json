@@ -16,6 +16,8 @@
     "geoip-lite": "^1.4.10",
     "ip": "^2.0.1",
     "ip-location-db": "^1.1.2020012618",
-    "public-ip": "^8.0.0"
+    "node-fetch": "^3.3.2",
+    "public-ip": "^8.0.0",
+    "socket.io": "^4.8.1"
   }
 }
