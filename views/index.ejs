@@ -1,31 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>🌍 IP Information</title>
-  <link rel="stylesheet" href="/style.css" />
+<meta charset="UTF-8">
+<title>Client Info Dashboard</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f7f9;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+  .card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    width: 250px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  .flag {
+    width: 60px;
+    height: 40px;
+    margin-bottom: 15px;
+  }
+  .device-info {
+    font-size: 14px;
+    color: #555;
+  }
+</style>
+<script type="module">
+  import { io } from "https://cdn.socket.io/4.7.1/socket.io.esm.min.js";
+  import { publicIpv4 } from "https://cdn.jsdelivr.net/npm/public-ip/+esm";
+
+  const socket = io();
+
+  // Detect device info
+  function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    const os = navigator.platform;
+    return { ua, os };
+  }
+
+  async function reportClientIP() {
+    try {
+      const publicIP = await publicIpv4({ timeout: 5000 });
+      document.getElementById("ip").textContent = publicIP;
+      socket.emit("report-ip", publicIP);
+    } catch (err) {
+      console.error("Failed to get public IP:", err);
+      document.getElementById("ip").textContent = "Unable to fetch";
+    }
+  }
+
+  socket.on("connect", () => reportClientIP());
+
+  socket.on("client-location", (geo) => {
+    if (geo.error) {
+      document.getElementById("location").textContent = geo.error;
+      document.getElementById("flag").style.display = "none";
+      return;
+    }
+
+    // Set country flag via country code
+    const countryCode = geo.country ? geo.country.toLowerCase() : "";
+    document.getElementById("flag").src = `https://flagcdn.com/48x36/${countryCode}.png`;
+
+    document.getElementById("country").textContent = geo.country || "N/A";
+    document.getElementById("region").textContent = geo.region || "N/A";
+    document.getElementById("city").textContent = geo.city || "N/A";
+    document.getElementById("latlon").textContent = `${geo.latitude}, ${geo.longitude}`;
+  });
+
+  // Fill device info
+  const device = getDeviceInfo();
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("ua").textContent = device.ua;
+    document.getElementById("os").textContent = device.os;
+  });
+</script>
 </head>
 <body>
-  <div class="container">
-    <h1>🌍 Your IP Information</h1>
-
-    <p><strong>Local IP (Device):</strong> <%= localIP %></p>
-    <p><strong>Public IP (Internet):</strong> <%= publicIP %></p>
-
-    <% if (data) { %>
-      <p><strong>Country:</strong> <%= data.country %></p>
-      <p><strong>Region:</strong> <%= data.region %></p>
-      <p><strong>City:</strong> <%= data.city %></p>
-      <p><strong>Coordinates:</strong> <%= data.latitude %>, <%= data.longitude %></p>
-
-      <% if (data.country) { %>
-        <img src="https://flagcdn.com/80x60/<%= data.country.toLowerCase() %>.png"
-             alt="Flag of <%= data.country %>"
-             class="flag" />
-      <% } %>
-    <% } else { %>
-      <p>No data found.</p>
-    <% } %>
+<h1>Client Info Dashboard</h1>
+<div class="dashboard">
+  <div class="card">
+    <h3>Public IP</h3>
+    <p id="ip">Loading...</p>
   </div>
+
+  <div class="card">
+    <h3>Location</h3>
+    <img id="flag" class="flag" src="" alt="Country Flag">
+    <p>Country: <span id="country">Loading...</span></p>
+    <p>Region: <span id="region">Loading...</span></p>
+    <p>City: <span id="city">Loading...</span></p>
+    <p>Lat,Lon: <span id="latlon">Loading...</span></p>
+  </div>
+
+  <div class="card">
+    <h3>Device Info</h3>
+    <p class="device-info">User Agent: <span id="ua">Loading...</span></p>
+    <p class="device-info">Platform: <span id="os">Loading...</span></p>
+  </div>
+</div>
 </body>
 </html>
